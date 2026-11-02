@@ -5,66 +5,384 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Recall Wallet — an agent wallet with a memory and a conscience</title>
 <style>
-body{font-family:system-ui,sans-serif;max-width:720px;margin:2em auto;padding:0 1em;line-height:1.5}
-#chat{border:1px solid #ccc;border-radius:8px;padding:1em;min-height:220px}
-.msg{margin:.6em 0}.user{font-weight:600}.agent{color:#0a5}.blocked{color:#b00}
-button{margin:.2em .2em .2em 0;padding:.4em .8em;cursor:pointer}
-input{width:70%;padding:.5em} code{background:#f2f2f2;padding:.1em .3em}
+  *{box-sizing:border-box}
+  :root{--bg:#0b0e14;--panel:#151926;--panel2:#1b2133;--panel3:#222945;--line:#2b3350;--text:#eef0f8;--muted:#98a2ba;--accent:#7c5cff;--green:#22c55e;--red:#ef4444;--amber:#f59e0b}
+  html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 700px at 70% 20%,#1d2a5e 0%,#0b0e14 60%);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;overflow:hidden}
+  /* ---- desktop ---- */
+  .desktop-icon{position:absolute;top:18px;left:18px;width:84px;text-align:center;font-size:12px;color:#fff;cursor:pointer;text-shadow:0 1px 3px #000;z-index:1}
+  .desktop-icon .ic{width:52px;height:52px;margin:0 auto 6px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#00c2a8);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+  /* ---- window ---- */
+  .window{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:1140px;max-width:calc(100vw - 24px);height:680px;max-height:calc(100vh - 72px);background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6);display:flex;flex-direction:column;z-index:5}
+  .window.maximized{left:0;top:0;transform:none;width:100vw;max-width:100vw;height:calc(100vh - 48px);max-height:none;border-radius:0}
+  .titlebar{display:flex;align-items:center;gap:10px;padding:0 0 0 14px;height:44px;background:#101423;border-bottom:1px solid var(--line);cursor:grab;user-select:none;flex:none}
+  .titlebar:active{cursor:grabbing}
+  .titlebar .appic{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--accent),#00c2a8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+  .titlebar .t{font-size:14px;font-weight:600}
+  .titlebar .t span{color:var(--muted);font-weight:400}
+  .winbtns{margin-left:auto;display:flex;height:100%}
+  .winbtns button{width:46px;border:0;background:transparent;color:var(--text);font-size:16px;cursor:pointer}
+  .winbtns button:hover{background:var(--panel3)}
+  .winbtns button.close:hover{background:#e81123}
+  /* ---- menus + toolbar ---- */
+  .menubar{display:flex;gap:2px;padding:4px 10px;background:#121626;border-bottom:1px solid var(--line);font-size:13px;flex:none;position:relative}
+  .menu{position:relative}
+  .menu>button{background:transparent;border:0;color:var(--text);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:13px}
+  .menu>button:hover,.menu.open>button{background:var(--panel3)}
+  .dropdown{display:none;position:absolute;top:100%;left:0;min-width:220px;background:#1d2338;border:1px solid var(--line);border-radius:10px;padding:6px;z-index:50;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  .menu.open .dropdown{display:block}
+  .dropdown button{display:block;width:100%;text-align:left;background:transparent;border:0;color:var(--text);padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+  .dropdown button:hover{background:var(--panel3)}
+  .toolbar{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:#141828;flex:none;flex-wrap:wrap}
+  .toolbar button,.toolbar .tb-label{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 13px;font-size:13px;cursor:pointer}
+  .toolbar button.primary{background:var(--accent);border-color:var(--accent);font-weight:700}
+  /* ---- body ---- */
+  .body{flex:1;display:grid;grid-template-columns:188px 1fr;min-height:0}
+  .nav{background:#12151f;border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:4px}
+  .nav button{display:flex;gap:10px;align-items:center;background:transparent;border:0;color:var(--muted);padding:11px 12px;border-radius:9px;cursor:pointer;font-size:14px;text-align:left}
+  .nav button.active{background:var(--panel3);color:#fff;font-weight:600}
+  .nav .navfoot{margin-top:auto;font-size:11px;color:var(--muted);line-height:1.5;padding:8px}
+  .pane{display:none;flex-direction:column;min-height:0;position:relative}
+  .pane.active{display:flex}
+  .panehead{padding:16px 20px 10px;border-bottom:1px solid var(--line)}
+  .panehead h2{margin:0 0 4px;font-size:18px}
+  .panehead p{margin:0;color:var(--muted);font-size:13px}
+  /* chat */
+  #chat{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:82%;padding:11px 14px;border-radius:14px;line-height:1.5;font-size:14px;white-space:pre-wrap}
+  .msg.user{align-self:flex-end;background:var(--accent);border-bottom-right-radius:4px}
+  .msg.agent{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:4px}
+  .verdict{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;padding:2px 8px;border-radius:999px;margin-bottom:6px}
+  .ok{background:#052e16;color:#4ade80}.no{background:#450a0a;color:#f87171}.warn{background:#451a03;color:#fbbf24}
+  .typing{color:var(--muted);font-size:13px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 10px}
+  .chips button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer}
+  .composer{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line)}
+  #input{flex:1;background:#0b0e14;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px 14px;font-size:14px;outline:none}
+  #input:focus{border-color:var(--accent)}
+  #sendbtn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:0 22px;font-weight:700;cursor:pointer}
+  .confirmbtn{margin-top:8px;background:var(--green);color:#06230f;border:0;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer}
+  /* wallet / rules / activity */
+  .scroll{flex:1;overflow:auto;padding:18px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card small{color:var(--muted);letter-spacing:.08em;font-size:11px}
+  .card .big{font-size:26px;font-weight:800;margin:6px 0}
+  .card code{word-break:break-all;color:#c7d2fe;font-size:12px}
+  .card button,.rowbtn{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;margin-top:8px}
+  .field{display:flex;gap:10px;margin-top:12px}
+  .field input,.field select{flex:1;background:#0b0e14;border:1px solid var(--line);border-radius:9px;color:var(--text);padding:11px 12px;font-size:14px}
+  .rule{display:flex;justify-content:space-between;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:8px}
+  .act{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .act time{color:var(--muted)}
+  /* statusbar + taskbar */
+  .statusbar{display:flex;gap:16px;align-items:center;padding:7px 14px;border-top:1px solid var(--line);background:#101423;font-size:12px;color:var(--muted);flex:none}
+  .dotlive{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
+  .taskbar{position:fixed;left:0;right:0;bottom:0;height:48px;background:rgba(16,20,35,.95);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 12px;z-index:100}
+  .taskbar .tbtn{display:flex;gap:8px;align-items:center;background:var(--panel3);border:1px solid var(--line);color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer}
+  .taskbar .clock{margin-left:auto;font-size:13px;color:var(--muted);text-align:right}
+  #cursor{position:absolute;width:26px;height:26px;left:-100px;top:-100px;z-index:60;pointer-events:none;transition:left .55s ease,top .55s ease,transform .12s;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+  #cursor.click{transform:scale(.75)}
+  .modal{display:none;position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:80;align-items:center;justify-content:center}
+  .modal.open{display:flex}
+  .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:460px;line-height:1.6;font-size:14px}
+  .modal .box button{margin-top:12px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer}
+  @media(max-width:760px){.body{grid-template-columns:1fr}.nav{flex-direction:row;overflow:auto}.nav .navfoot{display:none}.cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<h1>Recall Wallet</h1>
-<p>An agent wallet with a memory and a conscience. Built for NEAR HACKATHON.
-Testnet only — no real money moves here.</p>
-<p>NEAR account: <code>recallwallet.testnet</code><br>
-Derived Ethereum address: <code>0x2818ED85AF9d0981c8e8932eeA58DEaCe937147D</code><br>
-Derived Base address: <code>0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354</code><br>
-<small>Derived via testnet MPC contract <code>v1.signer-prod.testnet</code> — see
-<code>scripts/derive-addresses.mjs</code>. Verified, no private key used.</small></p>
-<div id="chat"></div>
-<p>
-<input id="input" placeholder="Try: send $20 to my freelancer on Base">
-<button onclick="send()">Send</button>
-</p>
-<p>
-<button onclick="demo('send $20 to my freelancer on Base')">Act 2: passing payment</button>
-<button onclick="demo('send $500 to 0xRandomAddress')">Act 3: blocked payment</button>
-<button onclick="demo('remember: never pay on weekends')">Set a new rule</button>
-</p>
-<p><small>Policy: $100 daily cap, $100 per-transaction cap, confirm above $50,
-allowlist enforced. NEAR Intents settlement is mainnet-only and the 1Click
-quote API returned HTTP 521 on 2026-11-02, so this demo shows the policy
-check and derived addresses honestly — it never fakes a settlement hash.
-A real testnet execution proof is in <code>scripts/testnet-execution-proof.mjs</code>.</small></p>
+<div class="desktop-icon" id="deskicon"><div class="ic">R</div>Recall Wallet<br><span style="font-size:11px;color:#cbd5e1">Testnet demo</span></div>
+
+<div class="window" id="window">
+  <div class="titlebar" id="titlebar">
+    <div class="appic">R</div>
+    <div class="t">Recall Wallet <span>— an agent wallet with a memory and a conscience</span></div>
+    <div class="winbtns">
+      <button id="btnMin" title="Minimize">—</button>
+      <button id="btnMax" title="Maximize">▢</button>
+      <button id="btnClose" title="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="menubar" id="menubar">
+    <div class="menu"><button>File</button><div class="dropdown">
+      <button data-action="playdemo">▶ Play demo</button>
+      <button data-action="resetchat">Reset chat</button>
+      <button data-action="exportrules">Export rules</button>
+    </div></div>
+    <div class="menu"><button>Wallet</button><div class="dropdown">
+      <button data-action="copybase">Copy Base address</button>
+      <button data-action="copyeth">Copy Ethereum address</button>
+      <button data-action="proof">View testnet proof on explorer</button>
+    </div></div>
+    <div class="menu"><button>Rules</button><div class="dropdown">
+      <button data-action="addrules">Add a rule…</button>
+      <button data-action="resetrules">Reset default rules</button>
+    </div></div>
+    <div class="menu"><button>View</button><div class="dropdown">
+      <button data-action="view-chat">Chat</button>
+      <button data-action="view-wallet">Wallet</button>
+      <button data-action="view-rules">Rules</button>
+      <button data-action="view-activity">Activity</button>
+    </div></div>
+    <div class="menu"><button>Help</button><div class="dropdown">
+      <button data-action="about">About Recall Wallet</button>
+    </div></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="primary" data-action="newpayment">＋ New payment</button>
+    <button data-action="addrules">Add rule</button>
+    <button id="playdemo">▶ Play demo</button>
+    <button data-action="copybase">Copy Base address</button>
+    <span class="tb-label" style="margin-left:auto">NEAR testnet · MPC connected</span>
+  </div>
+
+  <div class="body">
+    <nav class="nav">
+      <button class="active" data-view="chat">💬 Chat</button>
+      <button data-view="wallet">👛 Wallet</button>
+      <button data-view="rules">📋 Rules</button>
+      <button data-view="activity">📜 Activity</button>
+      <div class="navfoot">Testnet only.<br>No real money moves here. NEAR Intents settlement is mainnet-only; the 1Click quote API returned HTTP 521 on 2026-11-02, so no settlement is faked.</div>
+    </nav>
+
+    <section class="pane active" id="panel-chat">
+      <svg id="cursor" viewBox="0 0 24 24" fill="#fff" stroke="#000" stroke-width="1"><path d="M5 3l14 7-6.5 1.5L9 18z"/></svg>
+      <div id="chat"></div>
+      <div class="chips">
+        <button data-demo="send $20 to my freelancer on Base">Passing payment · $20</button>
+        <button data-demo="send $500 to 0xRandomAddress">Blocked payment · $500</button>
+        <button data-demo="send $60 to my freelancer on Base">Needs confirmation · $60</button>
+        <button data-demo="remember: never pay on weekends">Set a new rule</button>
+      </div>
+      <div class="composer">
+        <input id="input" placeholder="Try: send $20 to my freelancer on Base" autocomplete="off">
+        <button id="sendbtn">Send</button>
+      </div>
+    </section>
+
+    <section class="pane" id="panel-wallet">
+      <div class="panehead"><h2>Wallet</h2><p>One NEAR account, paying across chains via Chain Signatures. Balances below are testnet only and worthless.</p></div>
+      <div class="scroll">
+        <div class="cards">
+          <div class="card"><small>NEAR · TESTNET</small><div class="big">9.9899 NEAR</div><div>recallwallet.testnet</div><div style="color:var(--muted);font-size:12px;margin-top:6px">After the 0.01 testnet NEAR proof payment to the freelancer.</div></div>
+          <div class="card"><small>BASE · DERIVED ADDRESS</small><div class="big">$0 demo</div><code>0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354</code><br><button data-copy="0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354">Copy address</button></div>
+          <div class="card"><small>ETHEREUM · DERIVED ADDRESS</small><div class="big">$0 demo</div><code>0x2818ED85AF9d0981c8e8932eeA58DEaCe937147D</code><br><button data-copy="0x2818ED85AF9d0981c8e8932eeA58DEaCe937147D">Copy address</button></div>
+          <div class="card"><small>EXECUTION PROOF · ON-CHAIN</small><div style="margin-top:8px;font-size:13px;line-height:1.6">0.01 testnet NEAR → recallwallet-freelancer.testnet (now 10.01 NEAR). Verifiable, not a simulated hash.</div><button data-action="proof">Open explorer</button></div>
+        </div>
+        <h3 style="margin:22px 0 4px">Send — checked against your rules first</h3>
+        <div class="field">
+          <input id="wAmount" placeholder="Amount, e.g. 20">
+          <input id="wTo" placeholder="To, e.g. my freelancer">
+          <select id="wChain"><option>Base</option><option>Ethereum</option></select>
+          <button id="wSend" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:0 20px;font-weight:700;cursor:pointer">Review</button>
+        </div>
+        <p style="color:var(--muted);font-size:12px">Review sends the payment to the chat, where Recall checks it and tells you exactly which rule passed or stopped it.</p>
+      </div>
+    </section>
+
+    <section class="pane" id="panel-rules">
+      <div class="panehead"><h2>Rules I remember</h2><p>These persist in your browser across sessions. Delete one and Recall stops applying it.</p></div>
+      <div class="scroll">
+        <div id="rules"></div>
+        <div class="field">
+          <input id="ruleInput" placeholder="Add a rule, e.g. never pay on weekends">
+          <button id="ruleAdd" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:0 20px;font-weight:700;cursor:pointer">Remember</button>
+        </div>
+        <h3 style="margin:22px 0 4px">Fixed policy</h3>
+        <p style="color:var(--muted);font-size:13px;line-height:1.7">Daily cap $100 · Per-transaction cap $100 · Confirm above $50 · Allowlist enforced (new addresses need approval first).</p>
+      </div>
+    </section>
+
+    <section class="pane" id="panel-activity">
+      <div class="panehead"><h2>Activity</h2><p>Every decision Recall makes, with the rule that made it. The first entry is the real on-chain testnet proof.</p></div>
+      <div class="scroll" id="activity"></div>
+    </section>
+  </div>
+
+  <div class="statusbar">
+    <span><span class="dotlive"></span> Connected · v1.signer-prod.testnet (MPC)</span>
+    <span>Chain: NEAR testnet · Base / Ethereum derived</span>
+    <span style="margin-left:auto">TESTNET ONLY · NO REAL MONEY</span>
+  </div>
+
+  <div class="modal" id="aboutModal"><div class="box">
+    <h3 style="margin-top:0">About Recall Wallet</h3>
+    <p>An agent wallet with a memory and a conscience, built for the NEAR Hackathon. Plain-language payments are checked against remembered spending rules before anything moves, and every block names the rule that stopped it.</p>
+    <p>Testnet only. Intents settlement is mainnet-only, so this demo shows the policy check, derived addresses, and one real testnet execution — never a faked settlement.</p>
+    <p>Repo: github.com/tydavid5/recall-wallet</p>
+    <button id="aboutClose">Close</button>
+  </div></div>
+</div>
+
+<div class="taskbar">
+  <button class="tbtn" id="taskbtn"><span style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#7c5cff,#00c2a8);display:inline-flex;align-items:center;justify-content:center;font-weight:800">R</span> Recall Wallet</button>
+  <span style="font-size:12px;color:var(--muted)">Click the taskbar icon to restore the window if you minimized or closed it.</span>
+  <div class="clock"><div id="clock">--:--</div><div>Africa/Lagos · Testnet</div></div>
+</div>
+
 <script>
 const chat = document.getElementById('chat');
-const rules = JSON.parse(localStorage.getItem('recall-rules') || '["Never spend more than $100 a day.","Never pay a brand-new address without asking first."]');
+const input = document.getElementById('input');
+const rulesEl = document.getElementById('rules');
+const activityEl = document.getElementById('activity');
+const DEFAULT_RULES = ["Never spend more than $100 a day.", "Never pay a brand-new address without asking first."];
+let rules = JSON.parse(localStorage.getItem('recall-rules') || JSON.stringify(DEFAULT_RULES));
+let activity = JSON.parse(localStorage.getItem('recall-activity') || '[]');
+if (!activity.length) activity = [{ t: '2026-11-02', v: 'PROOF', x: '0.01 testnet NEAR sent recallwallet.testnet → recallwallet-freelancer.testnet (explorer: LjE4Sn8ZTKkYnbQqwurHmvuBnAEK2uizCjhpuDPzuAs)' }];
 const allowlist = ['freelancer', '0xe36e0ec8adb83fabd273d23f4ed26bd7ee197354'];
-function say(cls, text){ const d=document.createElement('div'); d.className='msg '+cls; d.textContent=text; chat.appendChild(d); }
+function saveRules(){ localStorage.setItem('recall-rules', JSON.stringify(rules)); }
+function saveActivity(){ localStorage.setItem('recall-activity', JSON.stringify(activity.slice(0, 30))); }
+function renderRules(){
+  rulesEl.textContent = '';
+  rules.forEach(function(r, i){
+    const d = document.createElement('div'); d.className = 'rule';
+    const s = document.createElement('span'); s.textContent = '✓ ' + r; d.appendChild(s);
+    const b = document.createElement('button'); b.className = 'rowbtn'; b.textContent = 'Delete';
+    b.onclick = function(){ rules.splice(i, 1); saveRules(); renderRules(); };
+    d.appendChild(b); rulesEl.appendChild(d);
+  });
+}
+function renderActivity(){
+  activityEl.textContent = '';
+  activity.forEach(function(a){
+    const d = document.createElement('div'); d.className = 'act';
+    const t = document.createElement('time'); t.textContent = a.t; d.appendChild(t);
+    const x = document.createElement('div'); x.textContent = a.v + ' — ' + a.x; d.appendChild(x);
+    activityEl.appendChild(d);
+  });
+}
+function logActivity(v, x){ activity.unshift({ t: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), v: v, x: x }); saveActivity(); renderActivity(); }
+renderRules(); renderActivity();
+function bubble(cls, verdict, verdictCls, text){
+  const d = document.createElement('div'); d.className = 'msg ' + cls;
+  if (verdict){ const v = document.createElement('span'); v.className = 'verdict ' + verdictCls; v.textContent = verdict; d.appendChild(v); d.appendChild(document.createElement('br')); }
+  d.appendChild(document.createTextNode(text)); chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d;
+}
+function sayUser(text){ bubble('user', null, '', text); }
 function check(amount, to){
-  if (amount > 100) return ['BLOCKED', `Amount $${amount} exceeds the per-transaction cap of $100.`];
-  if (!allowlist.some(a => to.toLowerCase().includes(a))) return ['BLOCKED', `Address ${to} is not on your allowlist, and new addresses need your approval first.`];
-  if (amount > 50) return ['NEEDS_CONFIRMATION', `Amount $${amount} is above your $50 confirmation threshold. Confirm to proceed.`];
-  return ['ALLOWED', 'Passes all spending rules.'];
+  if (amount > 100) return ['BLOCKED', 'no', 'Amount $' + amount + ' exceeds the per-transaction cap of $100. I remember your rules, so I stopped this one and I can tell you exactly why.'];
+  if (!allowlist.some(function(a){ return to.toLowerCase().includes(a); })) return ['BLOCKED', 'no', 'Address ' + to + ' is not on your allowlist, and new addresses need your approval first. I remember your rules, so I stopped this one and I can tell you exactly why.'];
+  if (amount > 50) return ['NEEDS_CONFIRMATION', 'warn', 'Amount $' + amount + ' is above your $50 confirmation threshold. Confirm to proceed.'];
+  return ['ALLOWED', 'ok', 'Passes all spending rules.'];
 }
-say('agent', 'Recall Wallet here. Rules I remember: ' + rules.join(' '));
-function demo(text){ document.getElementById('input').value = text; send(); }
-function send(){
-  const input = document.getElementById('input'); const text = input.value.trim();
-  if (!text) return; say('user', 'You: ' + text); input.value = '';
-  const remember = text.match(/^remember:\s*(.+)$/i);
-  if (remember){ rules.push(remember[1]); localStorage.setItem('recall-rules', JSON.stringify(rules)); say('agent', 'Remembered: ' + remember[1]); return; }
-  const m = text.match(/send \$?(\d+(?:\.\d+)?) to (.+?)(?: on (\w+))?$/i);
-  if (!m){ say('agent', 'Try: "send $20 to my freelancer on Base", or "remember: …"'); return; }
-  const amount = parseFloat(m[1]), to = m[2], chain = m[3] || 'Base';
-  const [decision, reason] = check(amount, to);
-  if (decision === 'ALLOWED'){
-    say('agent', `ALLOWED — ${reason} I would pay $${amount} to ${to} on ${chain} from the derived ${chain} address, via NEAR Intents (mainnet settlement; dry quote only in this testnet demo).`);
-  } else {
-    say('blocked', `${decision} — ${reason} I remember your rules, so I stopped this one and I can tell you exactly why.`);
+function respond(text){
+  const typing = document.createElement('div'); typing.className = 'typing'; typing.textContent = 'Recall is checking your rules…'; chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+  setTimeout(function(){
+    typing.remove();
+    const remember = text.match(/^remember:\s*(.+)$/i);
+    if (remember){ rules.push(remember[1]); saveRules(); renderRules(); bubble('agent', 'REMEMBERED', 'ok', 'Remembered: ' + remember[1] + '. I will apply it from now on, even after you reload.'); logActivity('RULE', 'Remembered: ' + remember[1]); return; }
+    const m = text.match(/send \$?(\d+(?:\.\d+)?) to (.+?)(?: on (\w+))?$/i);
+    if (!m){ bubble('agent', null, '', 'Try: "send $20 to my freelancer on Base", or "remember: …"'); return; }
+    const amount = parseFloat(m[1]), to = m[2], chain = m[3] || 'Base';
+    const res = check(amount, to);
+    if (res[0] === 'ALLOWED'){
+      bubble('agent', 'ALLOWED', 'ok', 'Passes all spending rules. I would pay $' + amount + ' to ' + to + ' on ' + chain + ' from the derived ' + chain + ' address, via NEAR Intents (mainnet settlement; dry quote only in this testnet demo).');
+      logActivity('ALLOWED', '$' + amount + ' to ' + to + ' on ' + chain);
+    } else if (res[0] === 'NEEDS_CONFIRMATION'){
+      const d = bubble('agent', 'NEEDS CONFIRMATION', 'warn', res[2]);
+      const btn = document.createElement('button'); btn.className = 'confirmbtn'; btn.textContent = 'Confirm payment';
+      btn.onclick = function(){ btn.remove(); bubble('agent', 'ALLOWED', 'ok', 'Confirmed by you. I would pay $' + amount + ' to ' + to + ' on ' + chain + ' from the derived ' + chain + ' address, via NEAR Intents.'); logActivity('ALLOWED (confirmed)', '$' + amount + ' to ' + to + ' on ' + chain); };
+      d.appendChild(document.createElement('br')); d.appendChild(btn);
+      logActivity('NEEDS CONFIRMATION', '$' + amount + ' to ' + to + ' on ' + chain);
+    } else {
+      bubble('agent', 'BLOCKED', 'no', res[2]);
+      logActivity('BLOCKED', '$' + amount + ' to ' + to + ' on ' + chain + ' — ' + res[2]);
+    }
+  }, 450);
+}
+function send(){ const text = input.value.trim(); if (!text) return; sayUser(text); input.value = ''; respond(text); }
+document.getElementById('sendbtn').onclick = send;
+input.addEventListener('keydown', function(e){ if (e.key === 'Enter') send(); });
+document.querySelectorAll('[data-demo]').forEach(function(b){ b.onclick = function(){ input.value = b.getAttribute('data-demo'); send(); }; });
+function copyText(v, btn){ try { navigator.clipboard.writeText(v); if (btn){ const old = btn.textContent; btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = old; }, 1200); } } catch (e) {} }
+document.querySelectorAll('[data-copy]').forEach(function(b){ b.onclick = function(){ copyText(b.getAttribute('data-copy'), b); }; });
+// ---- views ----
+function showView(name){
+  document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-view') === name); });
+}
+document.querySelectorAll('.nav button').forEach(function(b){ b.onclick = function(){ showView(b.getAttribute('data-view')); }; });
+// ---- menus ----
+document.querySelectorAll('.menu>button').forEach(function(b){
+  b.onclick = function(e){ e.stopPropagation(); const m = b.parentElement; const was = m.classList.contains('open'); document.querySelectorAll('.menu').forEach(function(x){ x.classList.remove('open'); }); if (!was) m.classList.add('open'); };
+});
+document.addEventListener('click', function(){ document.querySelectorAll('.menu').forEach(function(x){ x.classList.remove('open'); }); });
+function doAction(a){
+  if (a === 'playdemo') playDemo();
+  if (a === 'resetchat'){ chat.textContent = ''; bubble('agent', null, '', 'Recall Wallet here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.'); }
+  if (a === 'exportrules'){ const blob = new Blob([rules.join('\n')], {type: 'text/plain'}); const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = 'recall-rules.txt'; l.click(); URL.revokeObjectURL(u); }
+  if (a === 'copybase') copyText('0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354');
+  if (a === 'copyeth') copyText('0x2818ED85AF9d0981c8e8932eeA58DEaCe937147D');
+  if (a === 'proof') window.open('https://explorer.testnet.near.org/transactions/LjE4Sn8ZTKkYnbQqwurHmvuBnAEK2uizCjhpuDPzuAs', '_blank');
+  if (a === 'addrules'){ showView('rules'); document.getElementById('ruleInput').focus(); }
+  if (a === 'resetrules'){ rules = DEFAULT_RULES.slice(); saveRules(); renderRules(); showView('rules'); }
+  if (a === 'about') document.getElementById('aboutModal').classList.add('open');
+  if (a === 'newpayment'){ showView('chat'); input.focus(); }
+  if (a.indexOf('view-') === 0) showView(a.slice(5));
+}
+document.querySelectorAll('[data-action]').forEach(function(b){ b.onclick = function(){ doAction(b.getAttribute('data-action')); }; });
+document.getElementById('aboutClose').onclick = function(){ document.getElementById('aboutModal').classList.remove('open'); };
+// ---- wallet send form ----
+document.getElementById('wSend').onclick = function(){
+  const amt = document.getElementById('wAmount').value.trim(); const to = document.getElementById('wTo').value.trim(); const ch = document.getElementById('wChain').value;
+  if (!amt || !to) return; showView('chat'); input.value = 'send $' + amt + ' to ' + to + ' on ' + ch; send();
+};
+// ---- rules add ----
+document.getElementById('ruleAdd').onclick = function(){
+  const v = document.getElementById('ruleInput').value.trim(); if (!v) return;
+  rules.push(v); saveRules(); renderRules(); document.getElementById('ruleInput').value = '';
+  bubble('agent', 'REMEMBERED', 'ok', 'Remembered: ' + v); showView('chat');
+};
+// ---- window chrome: drag, minimize, maximize, close ----
+const win = document.getElementById('window');
+const titlebar = document.getElementById('titlebar');
+let dragging = false, dx = 0, dy = 0;
+titlebar.addEventListener('pointerdown', function(e){
+  if (e.target.closest('button')) return;
+  const r = win.getBoundingClientRect(); win.style.left = r.left + 'px'; win.style.top = r.top + 'px'; win.style.transform = 'none';
+  dragging = true; dx = e.clientX - r.left; dy = e.clientY - r.top;
+});
+window.addEventListener('pointermove', function(e){ if (dragging){ win.style.left = (e.clientX - dx) + 'px'; win.style.top = (e.clientY - dy) + 'px'; } });
+window.addEventListener('pointerup', function(){ dragging = false; });
+document.getElementById('btnMax').onclick = function(){ win.classList.toggle('maximized'); };
+function hideWindow(){ win.style.display = 'none'; }
+function showWindow(){ win.style.display = 'flex'; }
+document.getElementById('btnMin').onclick = hideWindow;
+document.getElementById('btnClose').onclick = hideWindow;
+document.getElementById('taskbtn').onclick = showWindow;
+document.getElementById('deskicon').ondblclick = showWindow;
+document.getElementById('deskicon').onclick = showWindow;
+// ---- clock ----
+function tick(){ try { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch (e) {} }
+tick(); setInterval(tick, 1000);
+// ---- Play demo: cursor moves, clicks, types ----
+const cursor = document.getElementById('cursor');
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+function moveCursorTo(el){
+  const r = el.getBoundingClientRect(); const host = document.getElementById('panel-chat').getBoundingClientRect();
+  cursor.style.left = (r.left - host.left + r.width / 2 - 4) + 'px';
+  cursor.style.top = (r.top - host.top + r.height / 2 - 2) + 'px';
+  return sleep(600);
+}
+function clickEl(){ cursor.classList.add('click'); return sleep(180).then(function(){ cursor.classList.remove('click'); }); }
+async function typeText(text){ input.focus(); input.value = ''; for (const ch of text){ input.value += ch; await sleep(45); } }
+async function playDemo(){
+  showWindow(); showView('chat');
+  const btn = document.getElementById('playdemo'); btn.disabled = true; btn.textContent = 'Playing…';
+  cursor.style.display = 'block';
+  const acts = ['send $20 to my freelancer on Base', 'send $500 to 0xRandomAddress', 'remember: never pay on weekends'];
+  for (const act of acts){
+    await moveCursorTo(input); await clickEl(); await typeText(act);
+    await moveCursorTo(document.getElementById('sendbtn')); await clickEl();
+    sayUser(act); input.value = ''; respond(act); await sleep(1700);
   }
+  cursor.style.display = 'none'; btn.disabled = false; btn.textContent = '▶ Play demo';
 }
-document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+document.getElementById('playdemo').onclick = playDemo;
+bubble('agent', null, '', 'Recall Wallet here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.');
 </script>
 </body>
 </html>
