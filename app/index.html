@@ -125,6 +125,7 @@
       <button data-action="view-rules">Rules</button>
       <button data-action="view-activity">Activity</button>
       <button data-action="view-vault">Vault</button>
+      <button data-action="view-intents">Intents</button>
     </div></div>
     <div class="menu"><button>Help</button><div class="dropdown">
       <button data-action="about">About Recall Wallet Agent</button>
@@ -136,6 +137,7 @@
     <button data-action="addrules">Add rule</button>
     <button id="playdemo">▶ Play demo</button>
     <button data-action="view-vault">🔐 Vault (live)</button>
+    <button data-action="view-intents">🌐 Intents (any chain)</button>
     <button data-action="copybase">Copy Base address</button>
     <span class="tb-label" style="margin-left:auto">NEAR testnet · MPC connected</span>
   </div>
@@ -147,6 +149,7 @@
       <button data-view="rules">📋 Rules</button>
       <button data-view="activity">📜 Activity</button>
       <button data-view="vault">🔐 Vault</button>
+      <button data-view="intents">🌐 Intents</button>
       <div class="navfoot">Testnet only.<br>No real money moves here. NEAR Intents settlement is mainnet-only; the 1Click quote API returned HTTP 521 on 2026-11-02, so no settlement is faked.</div>
     </nav>
 
@@ -219,6 +222,27 @@
         <h3 style="margin:22px 0 4px">Recent on-chain payments (latest first)</h3>
         <div id="vaultPayments" style="white-space:pre-wrap;font-size:13px;line-height:1.7">—</div>
         <p style="color:var(--muted);font-size:12px;margin-top:18px">Deploy tx: <a href="https://explorer.testnet.near.org/transactions/DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND" target="_blank" rel="noopener" style="color:#a5b4fc">DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND</a> · Explorer: <a href="https://explorer.testnet.near.org/accounts/recallwallet.testnet" target="_blank" rel="noopener" style="color:#a5b4fc">recallwallet.testnet</a></p>
+      </div>
+    </section>
+
+    <section class="pane" id="panel-intents">
+      <div class="panehead"><h2>Intents — fund from any chain, no bridging</h2><p>Powered by Aurora's Intents Swap Widget (NEAR Intents, 35+ chains). Connect a wallet, pay with a token on any supported chain, and Intents settles it to NEAR — then the vault's policy governs what happens next. No manual bridging, no multi-step swaps.</p></div>
+      <div class="scroll">
+        <p style="font-size:13px;line-height:1.7"><b>How it works:</b> 1) Connect your wallet inside the widget. 2) Choose a source chain and token. 3) Intents quotes, you approve the deposit in your own wallet, and it settles to NEAR. 4) The Recall Wallet Agent vault (testnet, separate from this widget) then applies its policy to spending.</p>
+        <p style="font-size:13px;line-height:1.7;color:var(--muted)">Honest labels: the widget runs on <b>mainnet Intents infrastructure</b> — if you use it, you approve real amounts in your own wallet, so only use amounts you choose. Muse never touches your funds and no key is involved here. The vault demo itself stays testnet-only. Every widget integration needs an API key from Widget Studio, and that key must never be committed to a public repo — so this panel loads the widget from a link <i>you</i> paste, stored only in your browser.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+          <a href="https://studio.aurora.dev/" target="_blank" rel="noopener" style="background:var(--accent);color:#fff;border-radius:9px;padding:10px 18px;font-weight:700;text-decoration:none;font-size:13px">Open Widget Studio →</a>
+          <a href="https://docs.intents.aurora.dev/intents-swap/widget-integration" target="_blank" rel="noopener" style="background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:10px 18px;font-size:13px;text-decoration:none">Integration docs</a>
+        </div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.6">To get your link: in Widget Studio, log in with email → choose <b>Swap</b> widget mode → configure networks/tokens → <b>Embed in your app → Generate a new link to embed</b> → paste that link below.</p>
+        <div class="field">
+          <input id="intentEmbed" placeholder="Paste your Widget Studio embed link here (https://…)">
+          <button id="intentLoad" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:0 20px;font-weight:700;cursor:pointer">Load widget</button>
+        </div>
+        <p id="intentStatus" style="color:var(--muted);font-size:13px">No widget link saved yet. Paste a Studio embed link above to load it here.</p>
+        <div id="intentFrameWrap" style="display:none;margin-top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden">
+          <iframe id="intentFrame" title="Aurora Intents Swap Widget" style="width:100%;height:640px;border:0"></iframe>
+        </div>
       </div>
     </section>
   </div>
@@ -343,7 +367,7 @@ function doAction(a){
   if (a === 'resetrules'){ rules = DEFAULT_RULES.slice(); saveRules(); renderRules(); showView('rules'); }
   if (a === 'about') document.getElementById('aboutModal').classList.add('open');
   if (a === 'newpayment'){ showView('chat'); input.focus(); }
-  if (a.indexOf('view-') === 0){ showView(a.slice(5)); if (a === 'view-vault') loadVault(); }
+  if (a.indexOf('view-') === 0){ showView(a.slice(5)); if (a === 'view-vault') loadVault(); if (a === 'view-intents'){ const saved = localStorage.getItem('recall-intent-embed'); if (saved) document.getElementById('intentEmbed').value = saved; loadIntentWidget(); } }
 }
 document.querySelectorAll('[data-action]').forEach(function(b){ b.onclick = function(){ doAction(b.getAttribute('data-action')); }; });
 document.getElementById('aboutClose').onclick = function(){ document.getElementById('aboutModal').classList.remove('open'); };
@@ -438,6 +462,24 @@ async function loadVault(){
 }
 document.getElementById('vaultRefresh').onclick = loadVault;
 document.querySelectorAll('.nav button').forEach(function(b){ b.addEventListener('click', function(){ if (b.getAttribute('data-view') === 'vault') loadVault(); }); });
+// ---- Intents widget: loads ONLY from a Studio embed link the user pastes (stored in their browser, never in the repo) ----
+function loadIntentWidget(){
+  const input = document.getElementById('intentEmbed');
+  const status = document.getElementById('intentStatus');
+  const wrap = document.getElementById('intentFrameWrap');
+  const frame = document.getElementById('intentFrame');
+  const url = ((input.value || '').trim() || localStorage.getItem('recall-intent-embed') || '');
+  if (!url){ status.textContent = 'No widget link saved yet. Paste a Studio embed link above to load it here.'; wrap.style.display = 'none'; return; }
+  let u;
+  try { u = new URL(url); } catch (e) { status.textContent = 'That link is not a valid URL. Paste the full https:// link from Widget Studio.'; wrap.style.display = 'none'; return; }
+  if (u.protocol !== 'https:' || !/(^|\.)aurora\.dev$/.test(u.hostname)){ status.textContent = 'That link does not look like a Widget Studio embed (expected an https://…aurora.dev link). Nothing was loaded.'; wrap.style.display = 'none'; return; }
+  localStorage.setItem('recall-intent-embed', url);
+  frame.src = url;
+  wrap.style.display = 'block';
+  status.textContent = 'Widget loaded from your saved Studio link. Connect a wallet inside the widget to use it.';
+}
+document.getElementById('intentLoad').onclick = loadIntentWidget;
+document.querySelectorAll('.nav button').forEach(function(b){ b.addEventListener('click', function(){ if (b.getAttribute('data-view') === 'intents'){ const saved = localStorage.getItem('recall-intent-embed'); if (saved) document.getElementById('intentEmbed').value = saved; loadIntentWidget(); } }); });
 bubble('agent', null, '', 'Recall Wallet Agent here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.');
 </script>
 </body>

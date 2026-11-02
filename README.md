@@ -58,6 +58,17 @@ chains from a single NEAR account.
   that needs a wallet connection, which is future work.
   On-chain amounts are NEAR, not USD; there is no USD conversion
   on-chain.
+- **Intents, any chain (panel built, widget link not configured yet):**
+  the app's Intents panel embeds Aurora's Intents Swap Widget
+  (NEAR Intents, 35+ chains) as an iframe, so a user can fund from
+  any supported chain/token without bridging, then let the vault
+  policy govern spending. The widget needs a Widget Studio embed
+  link (Studio account + API key, fees on that key) — that link is
+  pasted by the user into the panel and stored only in their
+  browser, never committed to this repo, so no widget is live in
+  the repo copy until a link is supplied. The widget runs on
+  mainnet Intents infrastructure; the vault demo itself stays
+  testnet-only.
 - **Live, but currently unavailable:** the NEAR Intents dry quote
   (`scripts/intents-quote.mjs`) — live pricing from the 1Click API with
   `dry: true`, free, no commitment, no funds. As of Nov 2, 2026, 14:46 WAT,
