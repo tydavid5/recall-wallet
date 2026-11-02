@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recall Wallet — an agent wallet with a memory and a conscience</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:720px;margin:2em auto;padding:0 1em;line-height:1.5}
+#chat{border:1px solid #ccc;border-radius:8px;padding:1em;min-height:220px}
+.msg{margin:.6em 0}.user{font-weight:600}.agent{color:#0a5}.blocked{color:#b00}
+button{margin:.2em .2em .2em 0;padding:.4em .8em;cursor:pointer}
+input{width:70%;padding:.5em} code{background:#f2f2f2;padding:.1em .3em}
+</style>
+</head>
+<body>
+<h1>Recall Wallet</h1>
+<p>An agent wallet with a memory and a conscience. Built for NEAR HACKATHON.
+Testnet only — no real money moves here.</p>
+<p>NEAR account: <code>recallwallet.testnet</code><br>
+Derived Ethereum address: <code>0x2818ED85AF9d0981c8e8932eeA58DEaCe937147D</code><br>
+Derived Base address: <code>0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354</code><br>
+<small>Derived via testnet MPC contract <code>v1.signer-prod.testnet</code> — see
+<code>scripts/derive-addresses.mjs</code>. Verified, no private key used.</small></p>
+<div id="chat"></div>
+<p>
+<input id="input" placeholder="Try: send $20 to my freelancer on Base">
+<button onclick="send()">Send</button>
+</p>
+<p>
+<button onclick="demo('send $20 to my freelancer on Base')">Act 2: passing payment</button>
+<button onclick="demo('send $500 to 0xRandomAddress')">Act 3: blocked payment</button>
+<button onclick="demo('remember: never pay on weekends')">Set a new rule</button>
+</p>
+<p><small>Policy: $100 daily cap, $100 per-transaction cap, confirm above $50,
+allowlist enforced. NEAR Intents settlement is mainnet-only and the 1Click
+quote API returned HTTP 521 on 2026-11-02, so this demo shows the policy
+check and derived addresses honestly — it never fakes a settlement hash.
+A real testnet execution proof is in <code>scripts/testnet-execution-proof.mjs</code>.</small></p>
+<script>
+const chat = document.getElementById('chat');
+const rules = JSON.parse(localStorage.getItem('recall-rules') || '["Never spend more than $100 a day.","Never pay a brand-new address without asking first."]');
+const allowlist = ['freelancer', '0xe36e0ec8adb83fabd273d23f4ed26bd7ee197354'];
+function say(cls, text){ const d=document.createElement('div'); d.className='msg '+cls; d.textContent=text; chat.appendChild(d); }
+function check(amount, to){
+  if (amount > 100) return ['BLOCKED', `Amount $${amount} exceeds the per-transaction cap of $100.`];
+  if (!allowlist.some(a => to.toLowerCase().includes(a))) return ['BLOCKED', `Address ${to} is not on your allowlist, and new addresses need your approval first.`];
+  if (amount > 50) return ['NEEDS_CONFIRMATION', `Amount $${amount} is above your $50 confirmation threshold. Confirm to proceed.`];
+  return ['ALLOWED', 'Passes all spending rules.'];
+}
+say('agent', 'Recall Wallet here. Rules I remember: ' + rules.join(' '));
+function demo(text){ document.getElementById('input').value = text; send(); }
+function send(){
+  const input = document.getElementById('input'); const text = input.value.trim();
+  if (!text) return; say('user', 'You: ' + text); input.value = '';
+  const remember = text.match(/^remember:\s*(.+)$/i);
+  if (remember){ rules.push(remember[1]); localStorage.setItem('recall-rules', JSON.stringify(rules)); say('agent', 'Remembered: ' + remember[1]); return; }
+  const m = text.match(/send \$?(\d+(?:\.\d+)?) to (.+?)(?: on (\w+))?$/i);
+  if (!m){ say('agent', 'Try: "send $20 to my freelancer on Base", or "remember: …"'); return; }
+  const amount = parseFloat(m[1]), to = m[2], chain = m[3] || 'Base';
+  const [decision, reason] = check(amount, to);
+  if (decision === 'ALLOWED'){
+    say('agent', `ALLOWED — ${reason} I would pay $${amount} to ${to} on ${chain} from the derived ${chain} address, via NEAR Intents (mainnet settlement; dry quote only in this testnet demo).`);
+  } else {
+    say('blocked', `${decision} — ${reason} I remember your rules, so I stopped this one and I can tell you exactly why.`);
+  }
+}
+document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+</script>
+</body>
+</html>

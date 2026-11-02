@@ -1,0 +1,4 @@
+node_modules/
+.testnet-key.json
+memory.json
+.DS_Store
