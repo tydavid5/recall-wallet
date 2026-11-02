@@ -18,7 +18,7 @@ to a random address is blocked — and it tells you exactly which rule
 stopped it. On testnet, the approved execution is real and verifiable:
 https://explorer.testnet.near.org/transactions/LjE4Sn8ZTKkYnbQqwurHmvuBnAEK2uizCjhpuDPzuAs
 
-Repo: [REPO LINK]
+Repo: https://github.com/tydavid5/recall-wallet
 
 @NEARProtocol #NEARHackathon
 
