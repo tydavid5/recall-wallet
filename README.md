@@ -127,13 +127,3 @@ After policy approved a $20 payment to the freelancer, the agent executed
    Ethereum and Base addresses in this README, derived live.
 4. Open the explorer link in "Testnet execution proof" below and
    confirm the transfer landed.
-
-## Submission
-
-- Public repository: https://github.com/tydavid5/recall-wallet
-  (published 2026-11-02, branch `main`)
-- Demo post on X: tag @NEARProtocol and #NEARHackathon, with video or
-  screenshots, before Nov 14, 2026, 23:59 UTC. Draft in
-  `docs/DEMO_POST.md` — post only from the owner's X account, with the
-  video or screenshots attached.
-- Both links submitted through the hackathon form.
