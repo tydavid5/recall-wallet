@@ -53,7 +53,9 @@ chains from a single NEAR account.
   confirmed, 0.4 NEAR ALLOWED (spent_today 1.3 NEAR), 0.8 NEAR BLOCKED
   (`dailyCap`), and 0.1 NEAR to a non-allowlisted account BLOCKED
   (`allowlist`) with the freelancer balance unchanged to the yocto.
-  The chat UI does not call it yet — UI integration is the next step.
+  The chat UI reads live contract state in its Vault panel (view
+  calls only, no signing); it does not yet sign on-chain payments —
+  that needs a wallet connection, which is future work.
   On-chain amounts are NEAR, not USD; there is no USD conversion
   on-chain.
 - **Live, but currently unavailable:** the NEAR Intents dry quote

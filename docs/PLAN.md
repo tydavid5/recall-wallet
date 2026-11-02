@@ -27,13 +27,17 @@ deterministic from NEAR account + derivation path, and needs no funds.
       account `recallwallet-freelancer.testnet` as the demo recipient.
 - [x] Chat UI (web, zero build step) + testnet execution proof with a
       real, explorer-verifiable tx hash (see README).
-- [x] Days 4–5 (unblocked 2026-11-02): Gated Payment Vault BUILT, NOT
-      DEPLOYED. JS contract via `near-sdk-js` 2.0.0 (Rust still not
-      installed — not needed). See `contracts/README.md`.
-- [ ] Days 4–5 follow-up (needs owner deploy go-ahead): deploy vault
-      to `recallwallet.testnet` (`scripts/deploy-vault.mjs`, NOT RUN),
-      run `contracts/TESTNET_VERIFICATION.md`, then wire the chat UI
-      to read policy/decisions from the contract.
+- [x] Days 4–5 (unblocked 2026-11-02): Gated Payment Vault BUILT,
+      DEPLOYED, and VERIFIED on testnet. JS contract via `near-sdk-js`
+      2.0.0 (Rust still not installed — not needed). See
+      `contracts/README.md` and `contracts/TESTNET_VERIFICATION.md`.
+- [x] Days 4–5 follow-up (done 2026-11-02): vault deployed to
+      `recallwallet.testnet` (`scripts/deploy-vault.mjs`, deploy tx
+      `DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND`),
+      `contracts/TESTNET_VERIFICATION.md` passed on-chain, and the
+      chat UI now reads live contract state in its Vault panel (view
+      calls only). Signing on-chain payments from the UI still needs
+      a wallet connection — future work.
 
 ## Gated Payment Vault (design, contracts/)
 

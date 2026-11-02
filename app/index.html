@@ -124,6 +124,7 @@
       <button data-action="view-wallet">Wallet</button>
       <button data-action="view-rules">Rules</button>
       <button data-action="view-activity">Activity</button>
+      <button data-action="view-vault">Vault</button>
     </div></div>
     <div class="menu"><button>Help</button><div class="dropdown">
       <button data-action="about">About Recall Wallet Agent</button>
@@ -134,6 +135,7 @@
     <button class="primary" data-action="newpayment">＋ New payment</button>
     <button data-action="addrules">Add rule</button>
     <button id="playdemo">▶ Play demo</button>
+    <button data-action="view-vault">🔐 Vault (live)</button>
     <button data-action="copybase">Copy Base address</button>
     <span class="tb-label" style="margin-left:auto">NEAR testnet · MPC connected</span>
   </div>
@@ -144,6 +146,7 @@
       <button data-view="wallet">👛 Wallet</button>
       <button data-view="rules">📋 Rules</button>
       <button data-view="activity">📜 Activity</button>
+      <button data-view="vault">🔐 Vault</button>
       <div class="navfoot">Testnet only.<br>No real money moves here. NEAR Intents settlement is mainnet-only; the 1Click quote API returned HTTP 521 on 2026-11-02, so no settlement is faked.</div>
     </nav>
 
@@ -198,6 +201,25 @@
     <section class="pane" id="panel-activity">
       <div class="panehead"><h2>Activity</h2><p>Every decision Recall makes, with the rule that made it. The first entry is the real on-chain testnet proof.</p></div>
       <div class="scroll" id="activity"></div>
+    </section>
+
+    <section class="pane" id="panel-vault">
+      <div class="panehead"><h2>Vault — live on-chain state</h2><p>Read straight from the deployed contract on NEAR testnet (<code>recallwallet.testnet</code>) over testnet RPC. No key, no signing — this panel only reads. Executing a payment on-chain needs a wallet signature, which is not connected yet, so the chat demo still checks payments locally. On-chain amounts are NEAR; the chat demo's $ amounts are USD and are a separate local demo.</p></div>
+      <div class="scroll">
+        <p id="vaultStatus" style="color:var(--muted);font-size:13px">Open this panel to fetch live state.</p>
+        <button id="vaultRefresh" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 18px;font-weight:700;cursor:pointer;margin-bottom:14px">↻ Refresh from testnet</button>
+        <div class="cards">
+          <div class="card"><small>ON-CHAIN POLICY</small><div id="vaultPolicy" style="margin-top:8px;font-size:13px;line-height:1.6">—</div></div>
+          <div class="card"><small>SPENT TODAY (UTC DAY)</small><div id="vaultSpent" style="margin-top:8px;font-size:20px;font-weight:800">—</div></div>
+          <div class="card"><small>CONTRACT ACCOUNT BALANCE</small><div id="vaultBalance" style="margin-top:8px;font-size:13px;line-height:1.6">—</div></div>
+          <div class="card"><small>ALLOWLIST (ON-CHAIN)</small><div id="vaultAllowlist" style="margin-top:8px;font-size:13px;line-height:1.6;word-break:break-all">—</div></div>
+        </div>
+        <h3 style="margin:22px 0 4px">Rules stored on-chain</h3>
+        <div id="vaultRules" style="white-space:pre-wrap;font-size:13px;line-height:1.7">—</div>
+        <h3 style="margin:22px 0 4px">Recent on-chain payments (latest first)</h3>
+        <div id="vaultPayments" style="white-space:pre-wrap;font-size:13px;line-height:1.7">—</div>
+        <p style="color:var(--muted);font-size:12px;margin-top:18px">Deploy tx: <a href="https://explorer.testnet.near.org/transactions/DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND" target="_blank" rel="noopener" style="color:#a5b4fc">DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND</a> · Explorer: <a href="https://explorer.testnet.near.org/accounts/recallwallet.testnet" target="_blank" rel="noopener" style="color:#a5b4fc">recallwallet.testnet</a></p>
+      </div>
     </section>
   </div>
 
@@ -321,7 +343,7 @@ function doAction(a){
   if (a === 'resetrules'){ rules = DEFAULT_RULES.slice(); saveRules(); renderRules(); showView('rules'); }
   if (a === 'about') document.getElementById('aboutModal').classList.add('open');
   if (a === 'newpayment'){ showView('chat'); input.focus(); }
-  if (a.indexOf('view-') === 0) showView(a.slice(5));
+  if (a.indexOf('view-') === 0){ showView(a.slice(5)); if (a === 'view-vault') loadVault(); }
 }
 document.querySelectorAll('[data-action]').forEach(function(b){ b.onclick = function(){ doAction(b.getAttribute('data-action')); }; });
 document.getElementById('aboutClose').onclick = function(){ document.getElementById('aboutModal').classList.remove('open'); };
@@ -382,6 +404,40 @@ async function playDemo(){
   cursor.style.display = 'none'; btn.disabled = false; btn.textContent = '▶ Play demo';
 }
 document.getElementById('playdemo').onclick = playDemo;
+// ---- Vault: live on-chain state via testnet RPC (read-only, no key, no signing) ----
+const RPC_URL = 'https://rpc.testnet.near.org';
+const VAULT = 'recallwallet.testnet';
+function fmtNear(yocto){ try { const s = BigInt(yocto).toString(); const pad = s.padStart(25, '0'); const whole = pad.slice(0, -24); const frac = pad.slice(-24).replace(/0+$/, ''); return frac ? whole + '.' + frac : whole; } catch (e) { return String(yocto); } }
+function textEl(id, text){ const el = document.getElementById(id); if (el) el.textContent = text; }
+async function rpcView(method, args){
+  const res = await fetch(RPC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 'recall', method: 'query', params: { request_type: 'call_function', account_id: VAULT, method_name: method, args_base64: btoa(JSON.stringify(args || {})), finality: 'final' } }) });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'RPC error');
+  const bytes = Uint8Array.from(atob(data.result.result), function(c){ return c.charCodeAt(0); });
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function loadVault(){
+  textEl('vaultStatus', 'Fetching live state from testnet…');
+  try {
+    const policy = await rpcView('get_policy');
+    textEl('vaultPolicy', 'Owner: ' + policy.owner + ' · Per-tx cap: ' + fmtNear(policy.per_tx_cap) + ' NEAR · Daily cap: ' + fmtNear(policy.daily_cap) + ' NEAR · Confirm above: ' + fmtNear(policy.confirm_threshold) + ' NEAR');
+    const spent = await rpcView('get_spent_today');
+    textEl('vaultSpent', fmtNear(spent.spent_today) + ' NEAR spent today (UTC day ' + spent.day + ')');
+    const bal = await rpcView('get_balance');
+    textEl('vaultBalance', fmtNear(bal.balance) + ' NEAR · contract: ' + bal.contract);
+    textEl('vaultAllowlist', (await rpcView('get_allowlist')).join(', '));
+    const rules = await rpcView('get_rules');
+    textEl('vaultRules', rules.length ? rules.map(function(r){ return '✓ ' + r; }).join('\n') : 'No rules stored on-chain.');
+    const pays = await rpcView('get_payments');
+    const recent = pays.slice(-6).reverse();
+    textEl('vaultPayments', recent.length ? recent.map(function(p){ return '#' + p.id + ' ' + p.decision + (p.rule ? ' (' + p.rule + ')' : '') + ' — ' + fmtNear(p.amount) + ' NEAR to ' + p.to + ' · ' + p.status; }).join('\n') : 'No payments recorded on-chain yet.');
+    textEl('vaultStatus', 'Live from testnet · last updated ' + new Date().toLocaleTimeString() + ' · Contract: recallwallet.testnet · Deploy tx DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND');
+  } catch (e) {
+    textEl('vaultStatus', 'Could not reach testnet RPC (' + e.message + '). The local chat demo still works; try Refresh.');
+  }
+}
+document.getElementById('vaultRefresh').onclick = loadVault;
+document.querySelectorAll('.nav button').forEach(function(b){ b.addEventListener('click', function(){ if (b.getAttribute('data-view') === 'vault') loadVault(); }); });
 bubble('agent', null, '', 'Recall Wallet Agent here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.');
 </script>
 </body>
