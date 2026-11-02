@@ -1,0 +1,26 @@
+# Recall Wallet Agent — checks that run on every push / pull request.
+#
+# Runs only the checks that pass on a fresh checkout with no build
+# artifacts and no keys: the terminal policy demo and the
+# publishable-file security scan. The vault mirror tests
+# (contracts/test-vault.mjs) are deliberately NOT run here: they read
+# contracts/build/vault.wasm, a git-ignored local build artifact that
+# is never committed, so they only run where the vault was built.
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Policy demo
+        run: node app/demo.js
+      - name: Security scan (publishable files only)
+        run: node scripts/security-check.mjs
