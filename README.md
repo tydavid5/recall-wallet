@@ -58,15 +58,18 @@ chains from a single NEAR account.
   that needs a wallet connection, which is future work.
   On-chain amounts are NEAR, not USD; there is no USD conversion
   on-chain.
-- **Intents, any chain (panel built, widget link not configured yet):**
+- **Intents, any chain (live in the repo copy):**
   the app's Intents panel embeds Aurora's Intents Swap Widget
   (NEAR Intents, 35+ chains) as an iframe, so a user can fund from
   any supported chain/token without bridging, then let the vault
-  policy govern spending. The widget needs a Widget Studio embed
-  link (Studio account + API key, fees on that key) — that link is
-  pasted by the user into the panel and stored only in their
-  browser, never committed to this repo, so no widget is live in
-  the repo copy until a link is supplied. The widget runs on
+  policy govern spending. The panel loads the widget from the
+  owner's Widget Studio embed link (Swap mode, all 34 networks,
+  no token restrictions, standalone wallet connection, 0% partner
+  fee), which the owner chose to share in the repo: a widget embed
+  key is publishable by design (it is visible to anyone who opens
+  the app, as with any embedded widget) and is not a signing key.
+  The panel still accepts a different Studio link pasted by the
+  user (stored only in their browser). The widget runs on
   mainnet Intents infrastructure; the vault demo itself stays
   testnet-only.
 - **Live, but currently unavailable:** the NEAR Intents dry quote

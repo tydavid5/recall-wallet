@@ -38,12 +38,12 @@ deterministic from NEAR account + derivation path, and needs no funds.
       chat UI now reads live contract state in its Vault panel (view
       calls only). Signing on-chain payments from the UI still needs
       a wallet connection — future work.
-- [ ] Intents, any chain (panel built 2026-11-02, link pending):
-      app Intents panel embeds Aurora's Intents Swap Widget via a
-      user-pasted Studio embed link (stored in browser only, never
-      committed). Needs the owner's Studio account + embed link to
-      go live; React SDK route deliberately not taken (app is
-      single-file, no build step).
+- [x] Intents, any chain (live in repo 2026-11-02):
+      app Intents panel pre-loads Aurora's Intents Swap Widget
+      from the owner's Studio embed link (Swap, 34 networks, no
+      token restrictions, 0% fee; owner authorised sharing the
+      publishable embed link in the repo). A different Studio
+      link can still be pasted into the panel (browser only).
 
 ## Gated Payment Vault (design, contracts/)
 
