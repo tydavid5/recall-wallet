@@ -38,6 +38,24 @@ chains from a single NEAR account.
     Base (path `base-1`): `0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354`.
     Derived via testnet MPC contract `v1.signer-prod.testnet`, no private
     key used or created.
+- **Built, deployed, and verified on testnet (Nov 2, 2026):** the Gated
+  Payment Vault (`contracts/`) — a NEAR smart contract (JS via
+  `near-sdk-js`) that holds testnet NEAR and only releases it when its
+  on-chain policy passes (per-transaction cap, daily cap, allowlist,
+  confirm threshold), with remembered rules and a decision log.
+  Deployed to `recallwallet.testnet`, deploy tx
+  `DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND`, policy per-tx 1
+  NEAR / daily 2 NEAR / confirm 0.5 NEAR, allowlist
+  `recallwallet-freelancer.testnet`. Testnet verification
+  (`scripts/verify-vault-testnet.mjs`, plan in
+  `contracts/TESTNET_VERIFICATION.md`) passed on-chain: 0.2 NEAR
+  ALLOWED, 1.2 NEAR BLOCKED (`perTxCap`), 0.7 NEAR pending then
+  confirmed, 0.4 NEAR ALLOWED (spent_today 1.3 NEAR), 0.8 NEAR BLOCKED
+  (`dailyCap`), and 0.1 NEAR to a non-allowlisted account BLOCKED
+  (`allowlist`) with the freelancer balance unchanged to the yocto.
+  The chat UI does not call it yet — UI integration is the next step.
+  On-chain amounts are NEAR, not USD; there is no USD conversion
+  on-chain.
 - **Live, but currently unavailable:** the NEAR Intents dry quote
   (`scripts/intents-quote.mjs`) — live pricing from the 1Click API with
   `dry: true`, free, no commitment, no funds. As of Nov 2, 2026, 14:46 WAT,
@@ -102,9 +120,11 @@ After policy approved a $20 payment to the freelancer, the agent executed
 - `scripts/intents-quote.mjs` — live NEAR Intents 1Click dry quote.
 - `scripts/derive-addresses.mjs` — Chain Signatures address derivation.
 - `scripts/testnet-execution-proof.mjs` — testnet execution proof.
-- `contracts/` — empty. A NEAR smart contract for on-chain policy +
-  memory is a deferred stretch goal (Rust is not installed here), not
-  part of the working demo — the JS policy + memory is the core.
+- `contracts/` — Gated Payment Vault: a NEAR smart contract (JS via
+  `near-sdk-js`) for on-chain policy + memory. BUILT, NOT YET
+  DEPLOYED — see `contracts/README.md` and
+  `contracts/TESTNET_VERIFICATION.md`. The JS policy + memory in
+  `app/` remains the working demo core until deployment.
 - `docs/PLAN.md` — 12-day build plan, risks, and decisions.
 - `docs/DEMO_SCRIPT.md` — timed 2-minute demo video script.
 - `docs/DEMO_POST.md` — ready-to-post X demo post draft + submission

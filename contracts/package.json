@@ -1,0 +1,13 @@
+{
+  "name": "recall-wallet-agent-vault",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Recall Wallet Agent — Gated Payment Vault (NEAR JS contract, testnet only)",
+  "license": "ISC",
+  "scripts": {
+    "build": "near-sdk-js build src/index.js build/vault.wasm"
+  },
+  "dependencies": {
+    "near-sdk-js": "^2.0.0"
+  }
+}

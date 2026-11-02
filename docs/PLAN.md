@@ -27,10 +27,52 @@ deterministic from NEAR account + derivation path, and needs no funds.
       account `recallwallet-freelancer.testnet` as the demo recipient.
 - [x] Chat UI (web, zero build step) + testnet execution proof with a
       real, explorer-verifiable tx hash (see README).
-- [ ] Days 4–5 (deferred, not blocking): NEAR smart contract for on-chain
-      policy + memory. Rust is not installed in this environment, so this
-      is a stretch goal — the JS policy + memory demo is the working
-      core, and the README says so.
+- [x] Days 4–5 (unblocked 2026-11-02): Gated Payment Vault BUILT, NOT
+      DEPLOYED. JS contract via `near-sdk-js` 2.0.0 (Rust still not
+      installed — not needed). See `contracts/README.md`.
+- [ ] Days 4–5 follow-up (needs owner deploy go-ahead): deploy vault
+      to `recallwallet.testnet` (`scripts/deploy-vault.mjs`, NOT RUN),
+      run `contracts/TESTNET_VERIFICATION.md`, then wire the chat UI
+      to read policy/decisions from the contract.
+
+## Gated Payment Vault (design, contracts/)
+
+Target: `recallwallet.testnet` on NEAR
+testnet; demo recipient `recallwallet-freelancer.testnet`. DEPLOYED
+Nov 2, 2026 (deploy tx
+`DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND`) and verified
+on-chain by `scripts/verify-vault-testnet.mjs` (see
+`contracts/TESTNET_VERIFICATION.md`).
+
+- Holds testnet NEAR in the contract balance; releases funds only
+  when on-chain policy passes. Blocked = no transfer, exact rule
+  named (`perTxCap`, `dailyCap`, `allowlist`, plus an
+  `insufficientBalance` safety guard). Above the confirm threshold =
+  recorded pending, no transfer, until `confirm_payment(id)`
+  re-checks caps/allowlist/balance and then transfers.
+- Policy amounts are yoctoNEAR, not USD. There is no on-chain USD
+  conversion, oracle, or price feed; callers convert off-chain.
+- Daily spent resets on a new UTC day (block timestamp / ns-per-day).
+- Owner-only writes (owner = deployer, set at `init`); anyone may
+  fund via payable `deposit()`, only the owner can move funds out.
+- Remembered rules (`add_rule`/`remove_rule`/`get_rules`) + a
+  decision log (`get_payments`) + views (`get_policy`,
+  `get_allowlist`, `get_spent_today`, `get_balance`).
+- Return-type caveat: an ALLOWED payment returns the transfer promise
+  itself, so its JSON decision lives in the on-chain log, not in the
+  call result. BLOCKED / NEEDS_CONFIRMATION return plain JSON.
+- NOT enforced: USD pricing, cross-chain settlement, or payments that
+  never pass through the vault (an agent paying from an ordinary
+  account bypasses it — the vault gates only funds it holds).
+- Build: `cd contracts && npm install && npm run build` →
+  `build/vault.wasm` (git-ignored artifact). Toolchain quirk: the
+  SDK postinstall's plain `tar xvf` fails on ownership in this
+  environment; see `contracts/README.md` for the `--no-same-owner`
+  workaround.
+- Verification: local mirror + artifact checks pass
+  (`node contracts/test-vault.mjs`). On-chain proof awaits
+  deployment + `contracts/TESTNET_VERIFICATION.md` — including a
+  blocked payment whose balances must not move by 1 yocto.
 - [ ] Days 9–10: demo video (2 min, 3 acts), README finalised, full
       end-to-end walkthrough from a clean checkout, exactly as judges
       will run it.
