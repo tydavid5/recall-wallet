@@ -189,7 +189,7 @@
     </section>
 
     <section class="pane" id="panel-rules">
-      <div class="panehead"><h2>Rules I remember</h2><p>These persist in your browser across sessions. Delete one and Recall stops applying it.</p></div>
+      <div class="panehead"><h2>Rules I remember</h2><p>These persist in your browser across sessions. Delete one and Recall stops applying it. These chat rules live in this browser only — they do <b>not</b> change the on-chain vault policy, which is set on-chain by the owner.</p></div>
       <div class="scroll">
         <div id="rules"></div>
         <div class="field">
@@ -207,7 +207,7 @@
     </section>
 
     <section class="pane" id="panel-vault">
-      <div class="panehead"><h2>Vault — live on-chain state</h2><p>Read straight from the deployed contract on NEAR testnet (<code>recallwallet.testnet</code>) over testnet RPC. No key, no signing — this panel only reads. Executing a payment on-chain needs a wallet signature, which is not connected yet, so the chat demo still checks payments locally. On-chain amounts are NEAR; the chat demo's $ amounts are USD and are a separate local demo.</p></div>
+      <div class="panehead"><h2>Vault — live on-chain state</h2><p>Read straight from the deployed contract on NEAR testnet (<code>recallwallet.testnet</code>) over testnet RPC. No key, no signing — this panel only reads. Executing a payment on-chain needs a wallet signature, which is not connected yet, so the chat demo still checks payments locally. On-chain amounts are NEAR; the chat demo's $ amounts are USD and are a separate local demo. Changing rules in the chat or Rules views does not change this on-chain policy.</p></div>
       <div class="scroll">
         <p id="vaultStatus" style="color:var(--muted);font-size:13px">Open this panel to fetch live state.</p>
         <button id="vaultRefresh" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 18px;font-weight:700;cursor:pointer;margin-bottom:14px">↻ Refresh from testnet</button>
@@ -229,7 +229,7 @@
       <div class="panehead"><h2>Intents — fund from any chain, no bridging</h2><p>Powered by Aurora's Intents Swap Widget (NEAR Intents, 35+ chains). Connect a wallet, pay with a token on any supported chain, and Intents settles it to NEAR — then the vault's policy governs what happens next. No manual bridging, no multi-step swaps.</p></div>
       <div class="scroll">
         <p style="font-size:13px;line-height:1.7"><b>How it works:</b> 1) Connect your wallet inside the widget. 2) Choose a source chain and token. 3) Intents quotes, you approve the deposit in your own wallet, and it settles to NEAR. 4) The Recall Wallet Agent vault (testnet, separate from this widget) then applies its policy to spending.</p>
-        <p style="font-size:13px;line-height:1.7;color:var(--muted)">Honest labels: the widget runs on <b>mainnet Intents infrastructure</b> — if you use it, you approve real amounts in your own wallet, so only use amounts you choose. Muse never touches your funds and no key is involved here. The vault demo itself stays testnet-only. Every widget integration needs an API key from Widget Studio, and that key must never be committed to a public repo — so this panel loads the widget from a link <i>you</i> paste, stored only in your browser.</p>
+        <p style="font-size:13px;line-height:1.7;color:var(--muted)">Honest labels: the widget runs on <b>mainnet Intents infrastructure</b> — if you use it, you approve real amounts in your own wallet, so only use amounts you choose. Muse never touches your funds and no signing key is involved here. The vault demo itself stays testnet-only. This copy pre-loads the widget from the owner's Studio configuration; you can still paste a different Studio link above and it is stored only in your browser. If the widget's token list fails to load (skeleton loaders or "couldn't load tokens list"), reload the panel — that is Aurora's API intermittently, not this app.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
           <a href="https://studio.aurora.dev/" target="_blank" rel="noopener" style="background:var(--accent);color:#fff;border-radius:9px;padding:10px 18px;font-weight:700;text-decoration:none;font-size:13px">Open Widget Studio →</a>
           <a href="https://docs.intents.aurora.dev/intents-swap/widget-integration" target="_blank" rel="noopener" style="background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:10px 18px;font-size:13px;text-decoration:none">Integration docs</a>

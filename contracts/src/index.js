@@ -15,10 +15,13 @@
 // yoctoNEAR, and any caller that wants "about $20" must convert off-chain
 // first and pass the resulting yoctoNEAR amount. Do not pretend otherwise.
 //
-// DEPLOYMENT STATUS: BUILT, NOT DEPLOYED (as of writing).
-// This file compiles to build/vault.wasm, but no deployment transaction
-// has been sent and no on-chain state exists yet. Deploying is a separate
-// step (scripts/deploy-vault.mjs) that needs the owner's explicit go-ahead.
+// DEPLOYMENT STATUS: DEPLOYED AND VERIFIED ON TESTNET (2026-11-02).
+// Deploy tx DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND to
+// recallwallet.testnet; policy per-tx 1 NEAR / daily 2 NEAR / confirm
+// 0.5 NEAR, allowlist [recallwallet-freelancer.testnet]; the on-chain
+// verification plan in contracts/TESTNET_VERIFICATION.md passed.
+// This file compiles to build/vault.wasm (a git-ignored build artifact,
+// never committed).
 //
 // POLICY CHECK ORDER (mirrors app/policy.js, in this order):
 //   1. perTxCap      — amount > per-transaction cap            -> BLOCKED

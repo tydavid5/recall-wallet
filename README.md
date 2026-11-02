@@ -161,5 +161,5 @@ After policy approved a $20 payment to the freelancer, the agent executed
    the chat UI, plus "remember: …" persisting across reloads.
 3. `node scripts/derive-addresses.mjs recallwallet.testnet` — the
    Ethereum and Base addresses in this README, derived live.
-4. Open the explorer link in "Testnet execution proof" below and
+4. Open the explorer link in "Testnet execution proof" above and
    confirm the transfer landed.

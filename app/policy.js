@@ -13,8 +13,9 @@ function createPolicy({
     perTxCapUsd,
     confirmAboveUsd,
     allowlist: new Set(allowlist),
-    // spent today, in USD — in the full app this is read from the
-    // on-chain memory contract; here it is passed in per check.
+    // spent today, in USD — passed in per check here. (The chat
+    // demo is local; the vault's spent_today lives on-chain and is
+    // a separate store with NEAR amounts, not USD.)
     check({ amountUsd, toAddress, spentTodayUsd = 0, confirmed = false }) {
       if (amountUsd > perTxCapUsd) {
         return {
