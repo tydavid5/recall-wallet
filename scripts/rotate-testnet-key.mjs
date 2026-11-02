@@ -1,4 +1,4 @@
-// Recall Wallet — rotate the testnet account key (testnet only).
+// Recall Wallet Agent — rotate the testnet account key (testnet only).
 //
 // Why this exists: a security scan printed the old key file's contents
 // into a tool log. The key is testnet-only and worthless, but the safe

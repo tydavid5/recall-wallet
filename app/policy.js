@@ -1,4 +1,4 @@
-// Recall Wallet — spending policy engine (pure logic, no chain, no funds).
+// Recall Wallet Agent — spending policy engine (pure logic, no chain, no funds).
 // A payment is either ALLOWED, BLOCKED (with the exact rule that stopped
 // it), or NEEDS_CONFIRMATION (above the confirm threshold, below the cap).
 

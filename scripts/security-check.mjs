@@ -1,4 +1,4 @@
-// Recall Wallet — pre-publish security check.
+// Recall Wallet Agent — pre-publish security check.
 // Run before every publish: node scripts/security-check.mjs
 // Exits non-zero (and names the file, never the secret) if it finds:
 //  - a private-key-shaped literal in any publishable file

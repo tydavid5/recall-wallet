@@ -1,4 +1,4 @@
-// Recall Wallet — live NEAR Intents 1Click dry quote.
+// Recall Wallet Agent — live NEAR Intents 1Click dry quote.
 // dry: true = free preview, no commitment, no funds, no keys.
 // This is the honest demo path: Intents settlement is mainnet-only
 // (intents.near has no public testnet deployment), so we show live

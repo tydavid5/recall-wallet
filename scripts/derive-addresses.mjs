@@ -1,4 +1,4 @@
-// Recall Wallet — Chain Signatures address derivation (read-only, no keys, no funds).
+// Recall Wallet Agent — Chain Signatures address derivation (read-only, no keys, no funds).
 // Derives the foreign addresses controlled by a NEAR testnet account via the
 // testnet MPC contract v1.signer-prod.testnet. The same account + path
 // always produces the same address; distinct paths are used per chain,

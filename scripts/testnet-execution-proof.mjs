@@ -1,4 +1,4 @@
-// Recall Wallet — testnet execution proof (testnet only, worthless funds).
+// Recall Wallet Agent — testnet execution proof (testnet only, worthless funds).
 //
 // HONESTY NOTE: this is NOT a USDC payment on Base. NEAR Intents settlement
 // is mainnet-only, and the 1Click quote API was returning HTTP 521 on

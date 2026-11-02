@@ -1,4 +1,4 @@
-# Recall Wallet — an agent wallet with a memory and a conscience
+# Recall Wallet Agent — an agent wallet with a memory and a conscience
 
 Built for NEAR HACKATHON (Nov 1–14, 2026). Tracks: Agent Economy, AI Security & Defense,
 Autonomous Business, DeFi.
@@ -8,7 +8,7 @@ Autonomous Business, DeFi.
 AI agents should be able to spend money, but only what you told them they could —
 and they should remember why.
 
-You talk to Recall Wallet in plain language. It remembers all your spending rules
+You talk to Recall Wallet Agent in plain language. It remembers all your spending rules
 across sessions, checks every payment against those rules, and pays across
 chains from a single NEAR account.
 

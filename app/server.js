@@ -1,4 +1,4 @@
-// Recall Wallet — zero-dependency static server for the chat demo.
+// Recall Wallet Agent — zero-dependency static server for the chat demo.
 // Usage: node app/server.js   then open http://localhost:8000
 //
 // SECURITY: this server serves ONLY index.html from its own directory.
@@ -46,5 +46,5 @@ const server = http.createServer((req, res) => {
   });
 });
 server.listen(8000, () =>
-  console.log("Recall Wallet demo at http://localhost:8000")
+  console.log("Recall Wallet Agent demo at http://localhost:8000")
 );

@@ -1,4 +1,4 @@
-// Recall Wallet — rule/preference memory across sessions.
+// Recall Wallet Agent — rule/preference memory across sessions.
 // File-backed here so the terminal demo persists rules between runs.
 // The NEAR smart contract version (contracts/) will replace this store
 // with on-chain memory; the interface (remember/recall) stays the same.

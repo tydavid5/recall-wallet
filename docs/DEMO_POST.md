@@ -1,14 +1,14 @@
-# Recall Wallet — demo post draft for X (do NOT post until the repo is public)
+# Recall Wallet Agent — demo post draft for X (do NOT post until the repo is public)
 
 Post this only after the repository is public, and attach the demo video
 (or screenshots) before posting. Replace [REPO LINK] with the real link.
 
 ---
 
-Built for NEAR HACKATHON: Recall Wallet — an agent wallet with a memory
+Built for NEAR HACKATHON: Recall Wallet Agent — an agent wallet with a memory
 and a conscience.
 
-Agents are about to spend money for us. Recall Wallet remembers your
+Agents are about to spend money for us. Recall Wallet Agent remembers your
 spending rules across sessions, checks every payment against them, and
 only then pays — from one NEAR account, across chains via Chain
 Signatures + NEAR Intents.

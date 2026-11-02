@@ -1,4 +1,4 @@
-// Recall Wallet — 3-act terminal demo (no keys, no funds).
+// Recall Wallet Agent — 3-act terminal demo (no keys, no funds).
 const { createPolicy } = require("./policy");
 const { Memory } = require("./memory");
 
@@ -16,7 +16,7 @@ const policy = createPolicy({
   allowlist: ["0xFreelancerOnBase"],
 });
 
-console.log("Recall Wallet — remembered rules:");
+console.log("Recall Wallet Agent — remembered rules:");
 for (const rule of memory.recallRules()) console.log(" -", rule);
 
 console.log("\nAct 2 — payment that passes:");

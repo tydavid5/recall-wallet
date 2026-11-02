@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Recall Wallet — an agent wallet with a memory and a conscience</title>
+<title>Recall Wallet Agent — an agent wallet with a memory and a conscience</title>
 <style>
   *{box-sizing:border-box}
   :root{--bg:#0b0e14;--panel:#151926;--panel2:#1b2133;--panel3:#222945;--line:#2b3350;--text:#eef0f8;--muted:#98a2ba;--accent:#7c5cff;--green:#22c55e;--red:#ef4444;--amber:#f59e0b}
@@ -91,12 +91,12 @@
 </style>
 </head>
 <body>
-<div class="desktop-icon" id="deskicon"><div class="ic">R</div>Recall Wallet<br><span style="font-size:11px;color:#cbd5e1">Testnet demo</span></div>
+<div class="desktop-icon" id="deskicon"><div class="ic">R</div>Recall Wallet Agent<br><span style="font-size:11px;color:#cbd5e1">Testnet demo</span></div>
 
 <div class="window" id="window">
   <div class="titlebar" id="titlebar">
     <div class="appic">R</div>
-    <div class="t">Recall Wallet <span>— an agent wallet with a memory and a conscience</span></div>
+    <div class="t">Recall Wallet Agent <span>— an agent wallet with a memory and a conscience</span></div>
     <div class="winbtns">
       <button id="btnMin" title="Minimize">—</button>
       <button id="btnMax" title="Maximize">▢</button>
@@ -126,7 +126,7 @@
       <button data-action="view-activity">Activity</button>
     </div></div>
     <div class="menu"><button>Help</button><div class="dropdown">
-      <button data-action="about">About Recall Wallet</button>
+      <button data-action="about">About Recall Wallet Agent</button>
     </div></div>
   </div>
 
@@ -208,7 +208,7 @@
   </div>
 
   <div class="modal" id="aboutModal"><div class="box">
-    <h3 style="margin-top:0">About Recall Wallet</h3>
+    <h3 style="margin-top:0">About Recall Wallet Agent</h3>
     <p>An agent wallet with a memory and a conscience, built for the NEAR Hackathon. Plain-language payments are checked against remembered spending rules before anything moves, and every block names the rule that stopped it.</p>
     <p>Testnet only. Intents settlement is mainnet-only, so this demo shows the policy check, derived addresses, and one real testnet execution — never a faked settlement.</p>
     <p>Repo: github.com/tydavid5/recall-wallet</p>
@@ -217,7 +217,7 @@
 </div>
 
 <div class="taskbar">
-  <button class="tbtn" id="taskbtn"><span style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#7c5cff,#00c2a8);display:inline-flex;align-items:center;justify-content:center;font-weight:800">R</span> Recall Wallet</button>
+  <button class="tbtn" id="taskbtn"><span style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#7c5cff,#00c2a8);display:inline-flex;align-items:center;justify-content:center;font-weight:800">R</span> Recall Wallet Agent</button>
   <span style="font-size:12px;color:var(--muted)">Click the taskbar icon to restore the window if you minimized or closed it.</span>
   <div class="clock"><div id="clock">--:--</div><div>Africa/Lagos · Testnet</div></div>
 </div>
@@ -312,7 +312,7 @@ document.querySelectorAll('.menu>button').forEach(function(b){
 document.addEventListener('click', function(){ document.querySelectorAll('.menu').forEach(function(x){ x.classList.remove('open'); }); });
 function doAction(a){
   if (a === 'playdemo') playDemo();
-  if (a === 'resetchat'){ chat.textContent = ''; bubble('agent', null, '', 'Recall Wallet here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.'); }
+  if (a === 'resetchat'){ chat.textContent = ''; bubble('agent', null, '', 'Recall Wallet Agent here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.'); }
   if (a === 'exportrules'){ const blob = new Blob([rules.join('\n')], {type: 'text/plain'}); const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = 'recall-rules.txt'; l.click(); URL.revokeObjectURL(u); }
   if (a === 'copybase') copyText('0xe36E0eC8ADB83fABD273d23f4ed26bD7Ee197354');
   if (a === 'copyeth') copyText('0x2818ED85AF9d0981c8e8932eeA58DEaCe937147D');
@@ -382,7 +382,7 @@ async function playDemo(){
   cursor.style.display = 'none'; btn.disabled = false; btn.textContent = '▶ Play demo';
 }
 document.getElementById('playdemo').onclick = playDemo;
-bubble('agent', null, '', 'Recall Wallet here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.');
+bubble('agent', null, '', 'Recall Wallet Agent here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.');
 </script>
 </body>
 </html>

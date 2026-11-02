@@ -1,4 +1,4 @@
-# Recall Wallet — build plan (Nov 2–14, 2026)
+# Recall Wallet Agent — build plan (Nov 2–14, 2026)
 
 Deadline: Nov 14, 2026, 23:59 UTC. Judging Nov 16–18. Prizes: $250K total,
 $55K grand prize, $10K per track first place (13 tracks).

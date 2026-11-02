@@ -1,5 +1,5 @@
 {
-  "name": "recall-wallet",
+  "name": "recall-wallet-agent",
   "version": "1.0.0",
   "description": "Built for NEAR HACKATHON (Nov 1–14, 2026). Tracks: Agent Economy, AI Security & Defense, Autonomous Business, Unstoppable DeFi.",
   "main": "index.js",

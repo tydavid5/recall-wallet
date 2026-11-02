@@ -1,11 +1,11 @@
-# Recall Wallet — demo video script (2 minutes, 3 acts)
+# Recall Wallet Agent — demo video script (2 minutes, 3 acts)
 
 Record this against the chat UI (`node app/server.js`, then
 http://localhost:8000) and the terminal. No voiceover is required —
 on-screen captions carry it. Do not add music over the key lines.
 
 ## Shot 0 — title (0:00–0:10)
-On screen: "Recall Wallet — an agent wallet with a memory and a conscience.
+On screen: "Recall Wallet Agent — an agent wallet with a memory and a conscience.
 Built for NEAR HACKATHON."
 Say: "Agents are about to spend money on our behalf. Who stops them
 spending it wrong? This one remembers the rules you gave it."
