@@ -275,6 +275,9 @@ const rulesEl = document.getElementById('rules');
 const activityEl = document.getElementById('activity');
 const DEFAULT_RULES = ["Never spend more than $100 a day.", "Never pay a brand-new address without asking first."];
 let rules = JSON.parse(localStorage.getItem('recall-rules') || JSON.stringify(DEFAULT_RULES));
+// Collapse any duplicates saved by earlier runs (e.g. Play Demo adding
+// 'never pay on weekends' on every run) so one rule stays one rule.
+rules = rules.filter(function(r, i){ return rules.findIndex(function(x){ return String(x).trim().toLowerCase() === String(r).trim().toLowerCase(); }) === i; });
 let activity = JSON.parse(localStorage.getItem('recall-activity') || '[]');
 if (!activity.length) activity = [{ t: '2026-11-02', v: 'PROOF', x: '0.01 testnet NEAR sent recallwallet.testnet → recallwallet-freelancer.testnet (explorer: LjE4Sn8ZTKkYnbQqwurHmvuBnAEK2uizCjhpuDPzuAs)' }];
 const allowlist = ['freelancer', '0xe36e0ec8adb83fabd273d23f4ed26bd7ee197354'];
@@ -318,7 +321,7 @@ function respond(text){
   setTimeout(function(){
     typing.remove();
     const remember = text.match(/^remember:\s*(.+)$/i);
-    if (remember){ rules.push(remember[1]); saveRules(); renderRules(); bubble('agent', 'REMEMBERED', 'ok', 'Remembered: ' + remember[1] + '. I will apply it from now on, even after you reload.'); logActivity('RULE', 'Remembered: ' + remember[1]); return; }
+    if (remember){ const newRule = remember[1].trim(); if (rules.some(function(r){ return String(r).trim().toLowerCase() === newRule.toLowerCase(); })){ bubble('agent', 'REMEMBERED', 'ok', 'Already remembered: ' + newRule + '. I have not added a second copy.'); return; } rules.push(newRule); saveRules(); renderRules(); bubble('agent', 'REMEMBERED', 'ok', 'Remembered: ' + newRule + '. I will apply it from now on, even after you reload.'); logActivity('RULE', 'Remembered: ' + newRule); return; }
     const m = text.match(/send \$?(\d+(?:\.\d+)?) to (.+?)(?: on (\w+))?$/i);
     if (!m){ bubble('agent', null, '', 'Try: "send $20 to my freelancer on Base", or "remember: …"'); return; }
     const amount = parseFloat(m[1]), to = m[2], chain = m[3] || 'Base';
@@ -379,6 +382,7 @@ document.getElementById('wSend').onclick = function(){
 // ---- rules add ----
 document.getElementById('ruleAdd').onclick = function(){
   const v = document.getElementById('ruleInput').value.trim(); if (!v) return;
+  if (rules.some(function(r){ return String(r).trim().toLowerCase() === v.toLowerCase(); })){ document.getElementById('ruleInput').value = ''; bubble('agent', 'REMEMBERED', 'ok', 'Already remembered: ' + v + ' — no second copy added.'); showView('chat'); return; }
   rules.push(v); saveRules(); renderRules(); document.getElementById('ruleInput').value = '';
   bubble('agent', 'REMEMBERED', 'ok', 'Remembered: ' + v); showView('chat');
 };

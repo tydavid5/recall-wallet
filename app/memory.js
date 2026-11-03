@@ -21,6 +21,10 @@ class Memory {
   }
 
   rememberRule(text) {
+    // One rule stays one rule: ignore an exact (case-insensitive) duplicate.
+    if (this.data.rules.some((r) => String(r.text).trim().toLowerCase() === String(text).trim().toLowerCase())) {
+      return this.data.rules.length;
+    }
     this.data.rules.push({ text, at: new Date().toISOString() });
     this.save();
     return this.data.rules.length;
