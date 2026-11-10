@@ -150,7 +150,7 @@
       <button data-view="activity">📜 Activity</button>
       <button data-view="vault">🔐 Vault</button>
       <button data-view="intents">🌐 Intents</button>
-      <div class="navfoot">Testnet only.<br>No real money moves here. NEAR Intents settlement is mainnet-only; the 1Click quote API returned HTTP 521 on 2026-11-02, so no settlement is faked.</div>
+      <div class="navfoot">Testnet only.<br>No real money moves here. NEAR Intents dry quote: live as of Nov 2026 (1Click API reachable, dry: true, no settlement faked).</div>
     </nav>
 
     <section class="pane active" id="panel-chat">
@@ -169,7 +169,7 @@
     </section>
 
     <section class="pane" id="panel-wallet">
-      <div class="panehead"><h2>Wallet</h2><p>One NEAR account, paying across chains via Chain Signatures. Balances below are testnet only and worthless.</p></div>
+      <div class="panehead"><h2>Wallet</h2><p>One NEAR account, paying across chains via Chain Signatures. testnet-only demo balances — no real value.</p></div>
       <div class="scroll">
         <div class="cards">
           <div class="card"><small>NEAR · TESTNET</small><div class="big">9.9899 NEAR</div><div>recallwallet.testnet</div><div style="color:var(--muted);font-size:12px;margin-top:6px">After the 0.01 testnet NEAR proof payment to the freelancer.</div></div>
@@ -240,6 +240,17 @@
           <button id="intentLoad" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:0 20px;font-weight:700;cursor:pointer">Load widget</button>
         </div>
         <p id="intentStatus" style="color:var(--muted);font-size:13px">Widget loaded from the Recall Wallet Agent Studio configuration. Connect a wallet inside the widget to use it.</p>
+        <div style="margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel2)">
+          <h3 style="margin:0 0 4px;font-size:15px">Dry Quote — live 1Click pricing, no money moves</h3>
+          <p style="margin:0 0 10px;font-size:12px;color:var(--muted);line-height:1.6">Asks the NEAR Intents 1Click API for a dry quote (dry: true) for wNEAR to USDC on NEAR. Nothing is deposited, nothing settles, no wallet is needed.</p>
+          <div class="field">
+            <input id="dryAmount" type="number" min="0" step="0.01" value="1" style="max-width:140px" aria-label="Amount in wNEAR">
+            <span style="font-size:13px;color:var(--muted)">wNEAR &rarr; USDC on NEAR</span>
+            <button id="dryGetQuote" style="background:var(--accent);color:#fff;border:0;border-radius:9px;padding:0 20px;font-weight:700;cursor:pointer">Get quote</button>
+          </div>
+          <p id="dryResult" style="font-size:13px;line-height:1.7;margin:10px 0 0">No quote yet. Press Get quote.</p>
+          <p class="warn" style="display:inline-block;border-radius:8px;padding:6px 10px;font-size:12px;margin:10px 0 0">Dry quote — no money moves, no commitment.</p>
+        </div>
         <div id="intentFrameWrap" style="display:block;margin-top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden">
           <iframe id="intentFrame" title="Aurora Intents Swap Widget" src="https://studio.aurora.dev?apiKey=71dfae45-088a-40ab-a974-0079bd42e7da&configId=70fb3301-d013-4764-8172-8c02400de1f0&embed=true" style="width:100%;height:640px;border:0"></iframe>
         </div>
@@ -423,12 +434,23 @@ async function playDemo(){
   showWindow(); showView('chat');
   const btn = document.getElementById('playdemo'); btn.disabled = true; btn.textContent = 'Playing…';
   cursor.style.display = 'block';
-  const acts = ['send $20 to my freelancer on Base', 'send $500 to 0xRandomAddress', 'remember: never pay on weekends'];
-  for (const act of acts){
+  // Acts 1–3: chat payments
+  const chatActs = ['send $20 to my freelancer on Base', 'send $500 to 0xRandomAddress', 'remember: never pay on weekends'];
+  for (const act of chatActs){
     await moveCursorTo(input); await clickEl(); await typeText(act);
     await moveCursorTo(document.getElementById('sendbtn')); await clickEl();
     sayUser(act); input.value = ''; respond(act); await sleep(1700);
   }
+  // Act 4: navigate to Intents panel and trigger a dry quote
+  await sleep(600);
+  showView('intents');
+  const intentsNavBtn = document.querySelector('.nav button[data-view="intents"]');
+  if (intentsNavBtn){ await moveCursorTo(intentsNavBtn); await clickEl(); }
+  await sleep(500);
+  const dryQuoteBtn = document.getElementById('dryGetQuote');
+  await moveCursorTo(dryQuoteBtn); await clickEl();
+  getDryQuote();
+  await sleep(2800); // give the fetch time to return and display
   cursor.style.display = 'none'; btn.disabled = false; btn.textContent = '▶ Play demo';
 }
 document.getElementById('playdemo').onclick = playDemo;
@@ -483,6 +505,55 @@ function loadIntentWidget(){
   status.textContent = 'Widget loaded from your saved Studio link. Connect a wallet inside the widget to use it.';
 }
 document.getElementById('intentLoad').onclick = loadIntentWidget;
+// ---- Dry Quote: live 1Click dry quote, browser fetch direct, no proxy, no key ----
+function wnearToYocto(s){
+  var parts = String(s).trim().split('.');
+  var whole = (parts[0] || '0').replace(/^0+(?=\d)/, '') || '0';
+  var frac = (parts[1] || '').replace(/[^0-9]/g, '').slice(0, 24);
+  while (frac.length < 24) frac += '0';
+  return whole + frac;
+}
+async function getDryQuote(){
+  var btn = document.getElementById('dryGetQuote');
+  var out = document.getElementById('dryResult');
+  var amt = parseFloat(document.getElementById('dryAmount').value);
+  if (!(amt > 0)){ out.textContent = 'Enter an amount above 0 wNEAR.'; return; }
+  btn.disabled = true;
+  out.textContent = 'Asking 1Click for a dry quote…';
+  try {
+    var res = await fetch('https://1click.chaindefuser.com/v0/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dry: true,
+        swapType: 'EXACT_INPUT',
+        slippageTolerance: 100,
+        originAsset: 'nep141:wrap.near',
+        destinationAsset: 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1',
+        amount: wnearToYocto(amt),
+        depositType: 'INTENTS',
+        refundTo: 'recallwallet.testnet',
+        refundType: 'INTENTS',
+        recipient: 'recallwallet.testnet',
+        recipientType: 'INTENTS',
+        deadline: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+      })
+    });
+    if (!res.ok){
+      var txt = await res.text();
+      out.textContent = 'Dry quote failed (HTTP ' + res.status + '): ' + txt.slice(0, 200) + ' — no quote was faked.';
+      return;
+    }
+    var q = await res.json();
+    var qq = q.quote || q;
+    out.textContent = amt + ' wNEAR → ' + (qq.amountOutFormatted || qq.amountOut || '?') + ' USDC on NEAR · about ' + (qq.timeEstimate != null ? qq.timeEstimate + 's' : '?') + ' · dry quote, no money moved.';
+  } catch (e) {
+    out.textContent = 'Dry quote failed: could not reach 1Click (' + e.message + '). No quote was faked — check your connection and try again.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+document.getElementById('dryGetQuote').onclick = getDryQuote;
 document.querySelectorAll('.nav button').forEach(function(b){ b.addEventListener('click', function(){ if (b.getAttribute('data-view') === 'intents'){ const saved = localStorage.getItem('recall-intent-embed'); if (saved) document.getElementById('intentEmbed').value = saved; loadIntentWidget(); } }); });
 bubble('agent', null, '', 'Recall Wallet Agent here. Rules I remember: ' + rules.join(' ') + ' — try a payment below, or press Play demo and watch me do it.');
 </script>

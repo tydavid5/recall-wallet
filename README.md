@@ -17,10 +17,9 @@ chains from a single NEAR account.
 1. **Set a rule:** "Never spend more than $100 a day, never pay a brand-new
    address without asking me first."
 2. **A payment that passes:** "Send 20 USDC to my freelancer on Base."
-   It is checked against policy and shown ready to execute. (The live
-   Intents dry quote is attempted by `scripts/intents-quote.mjs`, but
-   that API was down on 2026-11-02 — see the honesty note below. The
-   demo does not claim a quote it did not get.)
+   It is checked against policy and shown ready to execute. The app's
+   Intents panel now shows a live wNEAR → USDC dry quote from the
+   1Click API (`dry: true`, no money moves).
 3. **A payment that gets blocked:** "Send 500 USDC to this random address."
    It is refused, and the refusal names the exact rule that stopped it.
    In a fresh session, the agent still remembers the rule.
@@ -72,12 +71,14 @@ chains from a single NEAR account.
   user (stored only in their browser). The widget runs on
   mainnet Intents infrastructure; the vault demo itself stays
   testnet-only.
-- **Live, but currently unavailable:** the NEAR Intents dry quote
+- **Live and reachable as of Nov 10, 2026:** the NEAR Intents dry quote
   (`scripts/intents-quote.mjs`) — live pricing from the 1Click API with
-  `dry: true`, free, no commitment, no funds. As of Nov 2, 2026, 14:46 WAT,
-  `1click.chaindefuser.com` returns HTTP 521 (host down) on both the quote
-  and token endpoints. The script is ready and will be re-tested; until it
-  succeeds, the demo does not claim a live quote.
+  `dry: true`, free, no commitment, no funds. The script now sends the
+  required `deadline` field (ISO 8601, now + 5 min), `depositType:
+  "INTENTS"`, `recipientType: "INTENTS"`, `refundType: "INTENTS"`, and
+  `recipient: "recallwallet.testnet"`. Example output: 1 wNEAR → 3.549296
+  USDC, timeEstimate 12 s, exit 0. The app's Intents panel triggers the
+  same call client-side and displays the live quote.
 - **Mainnet-only, by NEAR's own design:** the Intents settlement stack has
   no public testnet deployment; `intents.near` is mainnet-only. So this
   prototype does **not** fake a settlement transaction hash on testnet.
@@ -105,8 +106,7 @@ node app/server.js   # then open http://localhost:8000
 node scripts/derive-addresses.mjs recallwallet.testnet
 
 # Live Intents dry quote (no keys, no funds, dry: true only)
-# NOTE: 1click.chaindefuser.com returned HTTP 521 on 2026-11-02 — retry
-# later; the script fails loudly instead of faking a quote.
+# Reachable as of Nov 10, 2026 — prints amountOutFormatted + timeEstimate, exit 0.
 node scripts/intents-quote.mjs
 
 # Testnet execution proof (needs local .testnet-key.json, git-ignored;
@@ -137,10 +137,10 @@ After policy approved a $20 payment to the freelancer, the agent executed
 - `scripts/derive-addresses.mjs` — Chain Signatures address derivation.
 - `scripts/testnet-execution-proof.mjs` — testnet execution proof.
 - `contracts/` — Gated Payment Vault: a NEAR smart contract (JS via
-  `near-sdk-js`) for on-chain policy + memory. BUILT, NOT YET
-  DEPLOYED — see `contracts/README.md` and
-  `contracts/TESTNET_VERIFICATION.md`. The JS policy + memory in
-  `app/` remains the working demo core until deployment.
+  `near-sdk-js`) for on-chain policy + memory. Deployed and verified on
+  testnet (`recallwallet.testnet`, deploy tx
+  `DG262GLyJnekjjDHrWTnZfuWP5VpwMPpxEYFzigm5fND`) — see
+  `contracts/README.md` and `contracts/TESTNET_VERIFICATION.md`.
 - `docs/PLAN.md` — 12-day build plan, risks, and decisions.
 - `docs/DEMO_SCRIPT.md` — timed 2-minute demo video script.
 - `docs/DEMO_POST.md` — ready-to-post X demo post draft + submission

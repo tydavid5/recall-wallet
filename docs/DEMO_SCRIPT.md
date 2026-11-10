@@ -28,7 +28,18 @@ Show: BLOCKED, naming the per-transaction cap and the allowlist.
 Say: "Five hundred dollars to a random address. It doesn't just fail —
 it tells me exactly which rule stopped it. That's the whole point."
 
-## Shot 4 — it remembers, and it really executed (1:35–2:00)
+## Shot 4 — live Intents dry quote (1:35–1:50)
+App: the Play Demo button navigates to the Intents panel and clicks
+"Get quote" automatically.
+Show: the Dry Quote section with the result — e.g. "1 wNEAR → 3.549296
+USDC on NEAR · about 12 s · dry quote, no money moved."
+Say: "The Intents panel fetches a live dry quote from the NEAR Intents
+1Click API (`https://1click.chaindefuser.com/v0/quote`). It is a dry
+quote — `dry: true` in the request body. No money moves, no wallet
+needed, no commitment. That USDC number is a real live price, not a
+placeholder."
+
+## Shot 5 — it remembers, and it really executed (1:50–2:10)
 Chat UI: type "remember: never pay on weekends" — then reload the page
 and show the rule is still there.
 Terminal: show the testnet explorer link for
@@ -41,7 +52,7 @@ money, no faked hashes."
 
 ## What NOT to say on camera
 - Do not say the USDC-on-Base payment itself settled. It did not —
-  Intents settlement is mainnet-only, and the 1Click quote API was
-  returning HTTP 521 on 2026-11-02.
+  Intents settlement is mainnet-only. The dry quote in Shot 4 is exactly
+  that: a dry price check only, no settlement, no deposit.
 - Do not call the 0.01 testnet NEAR transfer a USDC payment. Call it
   what it is: a testnet execution proof.

@@ -15,7 +15,9 @@ Signatures + NEAR Intents.
 
 Demo: a $20 payment to an allowlisted freelancer passes. A $500 payment
 to a random address is blocked — and it tells you exactly which rule
-stopped it. On testnet, the approved execution is real and verifiable:
+stopped it. The Intents panel now shows a live dry quote (wNEAR → USDC
+via the NEAR Intents 1Click API, `dry: true`, no money moves). On
+testnet, the approved execution is real and verifiable:
 https://explorer.testnet.near.org/transactions/LjE4Sn8ZTKkYnbQqwurHmvuBnAEK2uizCjhpuDPzuAs
 
 Repo: https://github.com/tydavid5/recall-wallet
