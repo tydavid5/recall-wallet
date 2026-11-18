@@ -3,6 +3,8 @@
 Built for NEAR HACKATHON (Nov 1–14, 2026). Tracks: Agent Economy, AI Security & Defense,
 Autonomous Business, DeFi.
 
+Live demo: https://recall-wallet-dusky.vercel.app
+
 ## The idea in one line
 
 AI agents should be able to spend money, but only what you told them they could —
